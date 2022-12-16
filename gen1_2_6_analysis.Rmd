@@ -1,0 +1,366 @@
+---
+title: "generation1_2_6"
+author: "Shannon Snyder"
+date: "2022-11-11"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(cowplot)
+library(modelr)
+library(lme4)
+```
+
+# Analysis of Generation 1, 2 and 6 data 
+Note: dataset is incomplete; generation 2 is missing accompanying control values, as is generation 6
+
+### Import dataset
+```{r}
+
+gen1_2_6 <- read.csv("~/Library/Mobile Documents/com~apple~CloudDocs/02.projects/induction_analysis/trangenerational/august induction1_2_6.csv", stringsAsFactors=TRUE)
+gen1_2_6<-na.omit(gen1_2_6)
+
+
+#change necessary elements to factors
+gen1_2_6$generation <- as.factor(gen1_2_6$generation)
+summary(gen1_2_6)
+  
+```
+
+
+```{r}
+#spines vs body length plots
+p1 <- ggplot(data=gen1_2_6, aes(x=bodylength, y=headspine)) + geom_point(size=0.5, aes(color=treatment))+ theme(legend.position="bottom") + scale_fill_brewer(palette="Accent")+ xlab("Bodylength") + ylab("Headspine Length") + ggtitle("Headspine vs Bodylength", subtitle = "before model") + theme(axis.text=element_text(size=8),axis.title=element_text(size=10)) +  theme(plot.subtitle=element_text(size=8)) + theme(plot.title = element_text(size = 10, face = "bold"),legend.title=element_text(size=10), legend.text=element_text(size=9))
+
+
+p2 <- ggplot(data=gen1_2_6, aes(x=bodylength, y=taillength)) + geom_point(size=0.5, aes(color=generation)) + theme(legend.position="bottom") + scale_fill_brewer(palette="Dark2")+ xlab("Bodylength") + ylab("Tailspine Length") + ggtitle("Tailspine vs Bodylength", subtitle = "before model") + theme(axis.text=element_text(size=8),axis.title=element_text(size=10)) +  theme(plot.subtitle=element_text(size=8)) + theme(plot.title = element_text(size = 10, face = "bold"),legend.title=element_text(size=10), legend.text=element_text(size=9))
+
+
+#top_row <- plot_grid(p1,p2, labels=c("A", "B"), rel_widths = c(1,1))
+#bottom_row <- plot_grid(p3, p4, labels=c("C", "D"), rel_widths=c(1,1))
+plot_grid(p1,p2, labels =NA, ncol=2)
+
+```
+
+```{r}
+#6 panel, spines seperated by generation
+
+gen1 <- subset(gen1_2_6, generation %in% c("1"))
+gen2 <- subset(gen1_2_6, generation %in% c("2"))
+gen6 <- subset(gen1_2_6, generation %in% c("6"))
+
+p1 <- ggplot(data=gen1, aes(x=bodylength, y=headspine)) + geom_point(size=0.35, aes(color=treatment)) + scale_color_manual(values=c('Darkorchid4','darkseagreen4')) + theme(legend.position=c(.89, .30)) + theme(legend.title=element_blank()) + xlab("Bodylength") + ylab("Headspine") + ggtitle("Generation 1") + theme(axis.text=element_text(size=8),axis.title=element_text(size=8)) + theme(plot.subtitle=element_text(size=8)) + theme(plot.title = element_text(size = 8, face = "bold"), legend.text=element_text(size=7)) + theme(legend.key.size = unit(0.01, "cm")) + ylim(300,1000)
+#p1
+
+p2 <- ggplot(data=gen2, aes(x=bodylength, y=headspine)) + geom_point(size=0.35, aes(color=treatment)) + scale_color_manual(values=c('Darkorchid2','darkseagreen3')) + theme(legend.position="none") + xlab("Bodylength") + ylab("Headspine") + ggtitle("Generation 2") + theme(axis.text=element_text(size=8),axis.title=element_text(size=8)) + theme(plot.subtitle=element_text(size=8)) + theme(plot.title = element_text(size = 8, face = "bold"),legend.title=element_text(size=8), legend.text=element_text(size=8)) + ylim(300,1000)
+#p2
+
+
+p3 <- ggplot(data=gen6, aes(x=bodylength, y=headspine)) + geom_point(size=0.35, aes(color=treatment)) + scale_color_manual(values=c('Darkorchid1','darkseagreen2')) + theme(legend.position="none") + xlab("Bodylength") + ylab("Headspine") + ggtitle("Generation 6") + theme(axis.text=element_text(size=8),axis.title=element_text(size=8)) + theme(plot.subtitle=element_text(size=8)) + theme(plot.title = element_text(size = 8, face = "bold"),legend.title=element_text(size=8), legend.text=element_text(size=8)) + ylim(300,1000)
+#p3
+
+p4 <- ggplot(data=gen1, aes(x=bodylength, y=taillength)) + geom_point(size=0.35, aes(color=treatment)) + scale_color_manual(values=c('firebrick4','dodgerblue4')) + theme(legend.position="none") + xlab("Bodylength") + ylab("Tailspine") + ggtitle("Generation 1") + theme(axis.text=element_text(size=8),axis.title=element_text(size=8)) + theme(plot.subtitle=element_text(size=8)) + theme(plot.title = element_text(size = 8, face = "bold"),legend.title=element_text(size=8), legend.text=element_text(size=7)) + theme(legend.position=c(.89, .30)) + theme(legend.title=element_blank())+ theme(legend.key.size = unit(0.01, "cm"))
+#p4
+
+p5 <- ggplot(data=gen2, aes(x=bodylength, y=taillength)) + geom_point(size=0.35, aes(color=treatment)) + scale_color_manual(values=c('dodgerblue3','firebrick3')) + theme(legend.position="none") + xlab("Bodylength") + ylab("Tailspine") + ggtitle("Generation 2") + theme(axis.text=element_text(size=8),axis.title=element_text(size=8)) + theme(plot.subtitle=element_text(size=8)) + theme(plot.title = element_text(size = 8, face = "bold"),legend.title=element_text(size=8), legend.text=element_text(size=8)) 
+#p5
+
+p6 <- ggplot(data=gen6, aes(x=bodylength, y=taillength)) + geom_point(size=0.35, aes(color=treatment)) + scale_color_manual(values=c('dodgerblue2','firebrick2')) + theme(legend.position="none") + xlab("Bodylength") + ylab("Tailspine") + ggtitle("Generation 6") + theme(axis.text=element_text(size=8),axis.title=element_text(size=8)) + theme(plot.subtitle=element_text(size=8)) + theme(plot.title = element_text(size = 8, face = "bold"),legend.title=element_text(size=8), legend.text=element_text(size=7)) 
+#p6
+
+top_row <- plot_grid(p1,p4, labels=c("A"))
+middle_row <- plot_grid(p2,p5, labels = c("B"))
+bottom_row <- plot_grid(p3, p6, labels=c("C"))
+plot_grid(top_row,middle_row,bottom_row, labels =NA, ncol=1)
+
+```
+
+
+```{r}
+#fitting linear for taillength and a quadratic model for headspine
+lm.model <- lm(headspine ~ bodylength, data = gen1_2_6)
+#summary(lm.model)
+
+bodylength2 <- (gen1_2_6$bodylength)^2
+quadratic.model <-lm(headspine ~ bodylength + bodylength2, data=gen1_2_6)
+summary(quadratic.model)
+
+
+linear.model <- lm(taillength ~ bodylength, data=gen1_2_6)
+gen1_2_6$tail_residuals<-linear.model$resid
+
+
+bodylengthvalues <- seq(400, 2500, 100)
+predictedcounts <- predict(quadratic.model,list(bodylength=bodylengthvalues, bodylength2=bodylengthvalues^2))
+plot(gen1_2_6$bodylength, gen1_2_6$headspine, pch=16, xlab = "Bodylength", ylab = "Headspine", cex.lab = 1.3, col = "blue")
+lines(bodylengthvalues, predictedcounts, col = "darkgreen", lwd = 3)
+
+#residuals
+gen1_2_6$head_residuals<-quadratic.model$resid
+
+#quad_resid <- quadratic.model$residuals
+#quad_resid <- gen1_2_6$residuals %>% 
+#  add_residuals(quadratic.model, "resid")
+```
+
+
+
+
+
+```{r}
+#Adult and Lifestage traits 
+induced <- subset(gen1_2_6, treatment %in% c("induced"))
+adults <- subset(gen1_2_6, lifestage %in% c("adult"))
+
+p1 <- ggplot(adults, aes(x=generation, y=head_residuals, fill=treatment)) + geom_boxplot(color="black") +  scale_fill_brewer(palette="Accent")+ xlab("Generation") + ylab("Headspine") +ggtitle("Adult Measurements") + theme(legend.key.size = unit(0.5, "cm")) + theme(legend.position=c(.87, .30)) + theme(plot.title = element_text(size = 8, face = "bold"), legend.text=element_text(size=7),legend.title=element_text(size=8))
+
+p2 <- ggplot(adults, aes(x=generation, y=tail_residuals, fill=treatment)) + geom_boxplot() + theme(legend.position="bottom") + scale_fill_brewer(palette="Accent") + xlab("Generation") + ylab("Tailspine") + theme(legend.key.size = unit(0.5, "cm")) + theme(legend.position=c(.87, .30)) + theme(plot.title = element_text(size = 8, face = "bold"), legend.text=element_text(size=7),legend.title=element_text(size=8)) +ggtitle("Adult Measurements")
+
+
+
+#plot_grid(p1,p2, labels =NA, ncol=2)
+
+adults <- subset(gen1_2_6, lifestage %in% c("adult"))
+
+gen1_2_6$lifestage <- factor(gen1_2_6$lifestage, levels=c("neonate", "juvenile", "adult", "geriatric"))
+
+p3 <- ggplot(gen1_2_6, aes(x=generation, y=head_residuals, fill=lifestage)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent") + scale_fill_manual(values = c("#F0E442", "#0072B2", "#D55E00", "#CC79A7")) + xlab("Generation") + ylab("Headspine ") + ggtitle("Lifestage Measurements") + theme(legend.position="bottom") 
+
+#p4 <- ggplot(adults, aes(x=generation, y=taillength, fill=treatment)) + geom_boxplot() + theme(legend.position="top") + scale_fill_brewer(palette="Dark2") + xlab("Generation") + ylab("Tailspine Length")
+
+top_row <- plot_grid(p1,p2, labels=c("A", "B"))
+bottom_row <- plot_grid(p3, labels=c("C"))
+plot_grid(top_row,bottom_row, labels =NA, ncol=1)
+
+#plot_grid(p3,p4, labels =NA, ncol=2, rel_widths = c(2,1))
+
+neonates <- subset(genn1_2_6, lifestage %in% c("neonate"))
+
+```
+
+
+
+```{r}
+#tailspine across generations with gen1 and gen2 emphasized
+p1 <- ggplot(gen1_2_6, aes(x=generation, y=tail_residuals, fill=lifestage)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent")+ xlab("Generation") + ylab("Tailspine ") + theme(legend.position="bottom") + ggtitle("Tailspine across Generations")
+
+
+gen1 <- subset(gen1_2_6, generation %in% c("1"))
+gen1$lifestage <- factor(gen1$lifestage, levels=c("neonate", "juvenile", "adult", "geriatric"))
+gen2 <- subset(gen1_2_6, generation %in% c("2"))
+gen2$lifestage <- factor(gen2$lifestage, levels=c("neonate", "juvenile", "adult", "geriatric"))
+
+p2 <- ggplot(gen1, aes(x=lifestage, y=tail_residuals, fill=treatment)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent") + xlab("Lifestage") + ylab("Tailspine ") + theme(legend.position="bottom") + ggtitle("Generation 1")
+
+
+p3 <- ggplot(gen2, aes(x=lifestage, y=tail_residuals, fill=treatment)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent") + xlab("Lifestage") + ylab("Tailspine ") + theme(legend.position="bottom") + ggtitle("Generation 2")
+
+
+gen1_2 <- subset(generation1_2_6, generation %in% c("1","2"))
+gen1_2$generation <- as.factor(gen1_2$generation)
+gen1_2$lifestage <- factor(gen1_2$lifestage, levels=c("neonate", "juvenile", "adult", "geriatric"))
+
+
+p4 <- ggplot(gen1_2, aes(x=lifestage, y=tail_residuals, fill=generation)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent")+ geom_jitter(size=0.5, aes(color=treatment)) + xlab("Lifestage") + ylab("Tailspine ") + theme(legend.position="bottom") + ggtitle("Generation 1 and 2")
+
+
+p5 <- ggplot(gen1_2, aes(x=lifestage, y=tail_residuals, fill=treatment)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent")+ geom_jitter(size=0.5, aes(color=treatment)) + xlab("Lifestage") + ylab("Tailspine ") + theme(legend.position="bottom") 
+#p3 + ggtitle("Tailspine across lifestages")
+
+
+top_row <- plot_grid(p1, labels=c("A"))
+bottom_row <- plot_grid(p2,p3, labels=c("B","C"))
+plot_grid(top_row,bottom_row, labels =NA, ncol=1)
+
+
+```
+
+```{r}
+#headspine across generations with gen1 and gen2 emphasized
+p1 <- ggplot(gen1_2_6, aes(x=generation, y=head_residuals, fill=lifestage)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent")+ xlab("Generation") + ylab("Headspine ") + theme(legend.position="bottom") + ggtitle("Headspine across Generations")
+
+
+gen1 <- subset(gen1_2_6, generation %in% c("1"))
+gen1$lifestage <- factor(gen1$lifestage, levels=c("neonate", "juvenile", "adult", "geriatric"))
+gen2 <- subset(gen1_2_6, generation %in% c("2"))
+gen2$lifestage <- factor(gen2$lifestage, levels=c("neonate", "juvenile", "adult", "geriatric"))
+
+p2 <- ggplot(gen1, aes(x=lifestage, y=head_residuals, fill=treatment)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent") + xlab("Lifestage") + ylab("Headspine ") + theme(legend.position="bottom") + ggtitle("Generation 1")
+
+
+p3 <- ggplot(gen2, aes(x=lifestage, y=head_residuals, fill=treatment)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent") + xlab("Lifestage") + ylab("Headspine ") + theme(legend.position="bottom") + ggtitle("Generation 2")
+
+
+gen1_2 <- subset(generation1_2_6, generation %in% c("1","2"))
+gen1_2$generation <- as.factor(gen1_2$generation)
+gen1_2$lifestage <- factor(gen1_2$lifestage, levels=c("neonate", "juvenile", "adult", "geriatric"))
+
+
+p4 <- ggplot(gen1_2, aes(x=lifestage, y=head_residuals, fill=generation)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent")+ geom_jitter(size=0.5, aes(color=treatment)) + xlab("Generation") + ylab("Headspine ") + theme(legend.position="bottom") + ggtitle("Generation 1 and 2")
+
+
+p5 <- ggplot(gen1_2, aes(x=lifestage, y=head_residuals, fill=treatment)) + geom_boxplot(color="black") + theme(legend.position="none") + scale_fill_brewer(palette="Accent")+ geom_jitter(size=0.5, aes(color=treatment)) + xlab("Generation") + ylab("Headspine ") + theme(legend.position="bottom") 
+#p3 + ggtitle("Tailspine across lifestages")
+
+
+top_row <- plot_grid(p1, labels=c("A"))
+bottom_row <- plot_grid(p2,p3, labels=c("B","C"))
+plot_grid(top_row,bottom_row, labels =NA, ncol=1)
+
+
+```
+
+
+```{r}
+#plot of all daphnia measurements with fitted curve
+cbp2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+p1<-ggplot(gen1, aes(x=age, y=taillength, group=treatment)) + geom_point(aes(color=treatment), size=0.75) + scale_color_manual(values=c("#D55E00","#009E73")) +geom_smooth(aes(color=treatment), size=0.5) + theme_minimal() +xlab("age") + ylab("Tailspine") + ggtitle("Generation 1") + theme(legend.position="bottom") +ylim(400,1600)
+
+
+p2<-ggplot(gen2, aes(x=age, y=taillength, group=treatment)) + geom_point(aes(color=treatment), size=0.75) + scale_color_manual(values=c("#D55E00","#009E73")) +geom_smooth(aes(color=treatment), size=0.5) + theme_minimal() +xlab("age") + ylab("Tailspine") + ggtitle("Generation 2") + theme(legend.position="bottom")+ylim(400,1600)
+
+
+gen6 <- subset(gen1_2_6, generation %in% c("6"))
+p3<-ggplot(gen6, aes(x=age, y=taillength, group=treatment)) + geom_point(aes(color=treatment), size=0.75) + scale_color_manual(values=c("#009E73")) +geom_smooth(aes(color=treatment), size=0.5) + theme_minimal() +xlab("age") + ylab("Tailspine") + ggtitle("Generation 6")+ theme(legend.position="bottom") +ylim(400,1600)
+
+
+gen1_samples <- subset(gen1, sample %in% c("L5.6", "L5.7", "L5c2.10", "L5c2.11","L5c2.2", "L5c2.4"))
+L5.6_7 <- subset(gen1, sample %in% c("L5.6", "L5.7"))
+
+
+
+
+
+p5<-ggplot(L5.6_7, aes(x=age, y=totalbodysize, group=treatment)) + geom_point() + geom_line(aes(color=treatment)) + scale_color_manual(values=c("#D55E00","#009E73")) + xlim(1,25) +xlab("Age") + ylab("Total Size") + ggtitle("Body Size")+ theme(legend.position="bottom")
+
+
+p6<-ggplot(L5.6_7, aes(x=age, y=headspine, group=treatment)) + geom_point() + geom_line(aes(color=treatment)) +scale_color_manual(values=c("#D55E00","#009E73")) + xlim(1,25) +xlab("Age") + ylab("Headspine") + ggtitle("Headspine")+ theme(legend.position="bottom") 
+
+
+p7<-ggplot(L5.6_7, aes(x=age, y=taillength, group=treatment)) + geom_point() + geom_line(aes(color=treatment)) +scale_color_manual(values=c("#D55E00","#009E73")) + xlim(1,25) +xlab("Age") + ylab("Tailspine") + ggtitle("Tailspine")+ theme(legend.position="bottom") 
+
+
+
+
+#top_row <- plot_grid(p1,p2,p3, labels=c("A"))
+#bottom_row <- plot_grid(p2,p3, labels=c("B","C"))
+plot_grid(p1,p2,p3, labels ="AUTO", ncol=3)
+
+plot_grid(p5,p6,p7, labels= "AUTO", ncol=3)
+
+
+
+```
+
+
+
+```{r}
+#bodylength across ages to show that the bodylength models also account for the age of the daphnia due to congruency between the curves of body length vs tailspine and body length vs age
+cbp2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+
+p1<-ggplot(gen1_2_6, aes(x=age, y=bodylength, group=treatment)) + geom_point(aes(color=treatment), size=0.5) + scale_color_manual(values=c("#D55E00","#009E73"))  + theme_minimal() +xlab("Age") + ylab("Bodylength") + ggtitle("Body length") + theme(legend.position="right") +ylim(200,2500) + theme(legend.key.size = unit(0.5, "cm")) + theme(legend.position=c(.87, .30)) + theme(plot.title = element_text(size = 8, face = "bold"), legend.text=element_text(size=7),legend.title=element_text(size=8), axis.title=element_text(size=8))
+
+p2<-ggplot(gen1_2_6, aes(x=age, y=totalbodysize, group=treatment)) + geom_point(aes(color=treatment), size=0.5) + scale_color_manual(values=c("#D55E00","#009E73")) + theme_minimal() +xlab("Age") + ylab("Total Body Size") + ggtitle("Total Body Size") + theme(legend.position="right") +ylim(1000,5000) + theme(legend.key.size = unit(0.5, "cm")) + theme(legend.position=c(.87, .30)) + theme(plot.title = element_text(size = 8, face = "bold"), legend.text=element_text(size=7),legend.title=element_text(size=8), axis.title=element_text(size=8))
+
+#p1
+#p2
+
+plot_grid(p1,p2, labels ="AUTO", ncol=2)
+
+p3<-ggplot(gen1_2_6, aes(x=age, y=bodylength, group=generation)) + geom_point(aes(color=generation), size=0.75) + scale_color_manual(values=c("#D55E00","#009E73", "#E69F00")) + theme_minimal() +xlab("Age") + ylab("Total Body Size") + ggtitle("Total Body Size") + theme(legend.position="right") +ylim(200,2500) + theme(legend.key.size = unit(0.5, "cm")) + theme(legend.position=c(.87, .30)) + theme(plot.title = element_text(size = 8, face = "bold"), legend.text=element_text(size=8),legend.title=element_text(size=8), axis.title=element_text(size=9) )
+p3
+
+p4<-ggplot(gen1_2_6, aes(x=age, y=bodylength, group=generation)) + geom_point(aes(color=generation), size=0.75) + scale_color_manual(values=c("#D55E00","#009E73", "#E69F00")) + theme_minimal() +xlab("Age") + ylab("Total Body Size") + ggtitle("Total Body Size") + theme(legend.position="right") +ylim(200,2500) + theme(legend.key.size = unit(0.5, "cm")) + theme(legend.position=c(.87, .30)) + theme(plot.title = element_text(size = 8, face = "bold"), legend.text=element_text(size=8),legend.title=element_text(size=8), axis.title=element_text(size=9) )
+p4
+#top_row <- plot_grid(p1,p2, labels=c("A", "B"))
+#bottom_row <- plot_grid(p3, labels=c("C"))
+#plot_grid(top_row, bottom_row, labels =NA, ncol=1)
+
+
+```
+
+```{r}
+#table(gen1_2_6$first.brood)
+
+
+#total_eggs <- aggregate(gen1_2_6$eggs, by=list(gen1_2_6$sample,gen1_2_6$treatment), FUN=length)
+
+
+x <- subset(gen1_2_6, eggs %in% c("desposited"))
+x2<- aggregate(x$age, by=list(x$sample,x$treatment), FUN=length)
+mod1 <- lm(x ~ Group.2, data=x2)
+summary(mod1)
+
+```
+```{r}
+library(xlsx)
+library(rstatix)
+library(reshape)
+library(tidyverse)
+library(dplyr)
+library(ggpubr)
+library(plyr)
+library(datarium)
+
+normality<-gen1_2_6 %>%
+group_by(age) %>%
+shapiro_test(score)
+data.frame(normality)
+```
+
+```{r}
+#taillength of all daphnia vs age, colored by treatment
+library(ggplot2)
+
+#gen1_2 <- subset(gen1_2_6, lifestage %in% c("adult"))
+
+ggplot(gen1, aes(x = age, y = taillength)) +geom_line(aes(color = sample, group = sample)) +ggtitle("Generation 1")
+
+ggplot(gen1_2_6, aes(x = age, y = taillength)) +geom_line(aes(color = treatment, group = sample)) + facet_wrap( ~ treatment, labeller = label_both) + scale_color_manual(values=c("#D55E00","#009E73")) + theme_minimal() +xlab("Age") + ylab("Tail length") + ggtitle("Tail length") + theme(legend.position="right") +ylim(300,2000) + theme(legend.key.size = unit(0.5, "cm")) + theme(legend.position=c(.87, .30)) + theme(plot.title = element_text(size = 12, face = "bold"), legend.text=element_text(size=8),legend.title=element_text(size=8), axis.title=element_text(size=10) )
+
+
+ggplot(gen1_2_6, aes(x = age, y = taillength)) +geom_line(aes(color = treatment, group = sample)) + facet_wrap( ~ generation, labeller = label_both) + scale_color_manual(values=c("#D55E00","#009E73")) + theme_minimal() +xlab("Age") + ylab("Tail length (um)") + ggtitle("Tail length") + theme(legend.position="right") +ylim(300,2000) + theme(legend.key.size = unit(0.5, "cm")) + theme(legend.position=c(.87, .30)) + theme(plot.title = element_text(size = 12, face = "bold"), legend.text=element_text(size=8),legend.title=element_text(size=8), axis.title=element_text(size=8) )
+```
+
+
+```{r}
+#tailspine vs age of all daphnia, colored by treatment, polus means for both treatments
+ggplot(gen1_2_6, aes(x = age, y = taillength)) +geom_line(aes(color = treatment, group = sample))+ stat_summary(aes(group = treatment, color = treatment),
+geom = "line", fun.y = mean, size = 3) + scale_color_manual(values=c("#D55E00","#009E73")) + theme_minimal() +xlab("Age") + ylab("Tail length (um)") + ggtitle("Tail length") + theme(legend.position="right") + theme(legend.key.size = unit(0.5, "cm")) + theme(legend.position=c(.87, .10)) + theme(plot.title = element_text(size = 12, face = "bold"), legend.text=element_text(size=8),legend.title=element_text(size=8), axis.title=element_text(size=8)) + ggtitle("Mean Tailspine")
+```
+
+```{r}
+#Extra plots using lattice
+library(lattice)
+
+xyplot(taillength ~ age, group = treatment, data = gen1_2_6, type = "b")
+xyplot(taillength ~ age | treatment, data = gen1_2_6)
+B <- xyplot(taillength ~ age | treatment, group = sample, data = gen1_2_6, type = "b")
+A <- xyplot(headspine ~ age | treatment, group = sample, data = gen1_2_6, type = "b")
+
+A
+B
+
+#top_row <- plot_grid(p1,p2, labels=c("A", "B"))
+#bottom_row <- plot_grid(p3, labels=c("C"))
+#plot_grid(A, B, labels ="AUTO", ncol=2)
+
+
+```
+
+
+
+
+
+
+
+
+
+
